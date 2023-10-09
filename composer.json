@@ -19,7 +19,7 @@
   "minimum-stability": "dev",
   "require": {
     "php": ">=7.1",
-    "silverstripe/framework": "^4.0",
+    "silverstripe/framework": "5",
     "phpoffice/phpspreadsheet": "^1.11"
   },
   "extra": {
