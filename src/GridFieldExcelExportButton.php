@@ -19,28 +19,30 @@ use SilverStripe\Forms\GridField\GridFieldPaginator;
 class GridFieldExcelExportButton implements GridField_HTMLProvider, GridField_ActionProvider, GridField_URLHandler {
 
     /**
-     * @var array Map of a property name on the exported objects, with values being the column title in the CSV file.
-     * Note that titles are only used when {@link $csvHasHeader} is set to TRUE.
-     */
-    protected $exportColumns;
-
-    protected $targetFragment;
-
-    /**
      * @var callable
      */
     protected $afterExportCallback;
 
-    public function __construct($targetFragment = 'before', $exportColumns = null) {
-        $this->targetFragment = $targetFragment;
-        $this->exportColumns = $exportColumns;
+    /**
+     * @param mixed[] $exportColumns
+     */
+    public function __construct(
+        protected $targetFragment = 'before',
+        /**
+         * @var array Map of a property name on the exported objects, with values being the column title in the CSV file.
+         * Note that titles are only used when {@link $csvHasHeader} is set to TRUE.
+         */
+        protected mixed $exportColumns = null
+    )
+    {
     }
 
-    public function getHTMLFragments($gridField) {
+    public function getHTMLFragments($gridField): array
+    {
         $button = new GridField_FormAction(
             $gridField,
             'exportexcel',
-            _t(__CLASS__ . '.EXPORT_CTA', 'Export as Excel file'),
+            _t(self::class . '.EXPORT_CTA', 'Export as Excel file'),
             'exportexcel',
             null
         );
@@ -124,7 +126,7 @@ class GridFieldExcelExportButton implements GridField_HTMLProvider, GridField_Ac
         $content = [];
         foreach ($items->limit(null) as $item) {
             if (!$item->hasMethod('canView') || $item->canView()) {
-                $columnData = array();
+                $columnData = [];
 
                 foreach ($columns as $columnSource => $columnHeader) {
                     if (!is_string($columnHeader) && is_callable($columnHeader)) {
@@ -143,10 +145,10 @@ class GridFieldExcelExportButton implements GridField_HTMLProvider, GridField_Ac
                         }
                     }
 
-                    $value = str_replace(array("\r", "\n"), "\n", $value);
+                    $value = $value ? str_replace(["\r", "\n"], "\n", (string) $value) : "";
 
                     // [SS-2017-007] Sanitise XLS executable column values with a leading tab
-                    if (!Config::inst()->get(get_class($this), 'xls_export_disabled')
+                    if (!Config::inst()->get(static::class, 'xls_export_disabled')
                         && preg_match('/^[-@=+].*/', $value)
                     ) {
                         $value = "\t" . $value;
@@ -197,7 +199,6 @@ class GridFieldExcelExportButton implements GridField_HTMLProvider, GridField_Ac
 
     /**
      *
-     * @param callable $afterExportCallback
      * @return ExcelGridFieldExportButton
      */
     public function setAfterExportCallback(callable $afterExportCallback)
